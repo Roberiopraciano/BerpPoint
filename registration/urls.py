@@ -1,6 +1,16 @@
 from django.urls import path
-from . import views
+from .views import create_employee, create_faces_collection
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    path(
+        '',
+        create_employee,
+        name='create_employee'
+    ),
+    
+    path(
+        'create_faces_collection/<int:employee_id>',
+        create_faces_collection,
+        name='create_faces_collection'
+    )
 ]

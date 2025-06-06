@@ -23,11 +23,7 @@ class Employee(models.Model):
 
 
 class FaceCollection(models.Model):
-    employee = models.ForeignKey(
-        Employee,
-        on_delete=models.CASCADE,
-        related_name='employee_collection'
-    )
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='employee_collection')
     image = models.ImageField(upload_to='roi/')
 
     class Meta:
