@@ -1,6 +1,24 @@
 from django.shortcuts import render, redirect
-from .forms import EmployeeForm, FaceCollectionForm
-from .models import Employee, FaceCollection
+from .forms import EmployeeForm
+from .models import Employee
+from django.http import StreamingHttpResponse
+from .camera import VideoCamera
+
+camera_detection = VideoCamera()
+
+def gen_detect_face(camera_detection):
+    while True:
+        frame = camera_detection.get_camera()
+
+        if frame is None:
+            continue
+
+        yield (b'--frame\r\n'b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+
+
+def face_detection(request):
+    return StreamingHttpResponse(gen_detect_face(camera_detection), content_type='multipart/x-mixed-replace; boundary=frame')
+
 
 def create_employee(request):
     if request.method == 'POST':
@@ -15,20 +33,12 @@ def create_employee(request):
 
 
 def create_faces_collection(request, employee_id):
+    print(employee_id)
     employee = Employee.objects.get(id=employee_id)
 
-    if request.method == 'POST':
-        form = FaceCollectionForm(request.POST, request.FILES)
-
-        if form.is_valid():
-            for image in request.FILES.getlist('images'):
-                FaceCollection.objects.create(employee=employee, image=image)
-    else:
-        form = FaceCollectionForm()
-        
     context = {
         'employee': employee,
-        'form': form
+        'face_detection': face_detection,
     }
-    
+
     return render(request, 'create_faces_collection.html', context)
