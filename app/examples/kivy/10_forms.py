@@ -39,14 +39,14 @@ class MyForm(GridLayout):
         self.add_widget(checkbox_layout)
 
         self.submit_button = Button(text="Enviar")
-        self.submit_button.bind(on_press=self.enviar_formulario)
+        self.submit_button.bind(on_press=self.send_form)
         self.add_widget(self.submit_button)
 
         self.submit_button = Button(text="Limpar")
-        self.submit_button.bind(on_press=self.limpar_fomrulario)
+        self.submit_button.bind(on_press=self.clear_form)
         self.add_widget(self.submit_button)
 
-    def enviar_formulario(self, instance):
+    def send_form(self, instance):
         nome = self.name.text
         sobrenome = self.lastName.text
         email = self.email.text
@@ -56,7 +56,7 @@ class MyForm(GridLayout):
         else:
             print("Por favor, aceite os termos antes de enviar.")
     
-    def limpar_fomrulario(self, instance):
+    def clear_form(self, instance):
         self.name.text = ''
         self.lastName.text = ''
         self.email.text = ''
