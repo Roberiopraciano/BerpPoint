@@ -152,17 +152,48 @@ class MainScreen(MDScreen):
         self.manager.current = 'user'
 
         user_screen = self.manager.get_screen('user')
+
         user_screen.ids.photo.source = employee["photo"]
         user_screen.ids.name.text = f"Nome: {employee['name']}"
         user_screen.ids.cpf.text = f"CPF: {employee['cpf']}"
         user_screen.ids.datetime.text = f"Data e Hora: {datetime.now().strftime('%d/%m/%Y às %H:%M')}"
 
+        user_screen.employee_id = employee["id"]
+        user_screen.datetime = datetime.now().isoformat()
+
         user_screen.ids.card.opacity = 1
 
 
 class UserScreen(MDScreen):
-    pass
+    def confirm_registration(self):
+        if not self.employee_id:
+            print("Funcionário não definido.")
+            return
 
+        employee = {
+            "employee": self.employee_id,
+            "datetime": self.datetime
+        }
+
+        print(employee)
+
+        url_api = "http://127.0.0.1:8000/api/employee-registration/"
+
+        try:
+            response = requests.post(url_api, json=employee)
+
+            if response.status_code == 201:
+                print("Registro salvo com sucesso!")
+                receipt_screen = self.manager.get_screen('receipt')
+                message = f"Matricula: {self.employee_id}\n{self.ids.datetime.text}\n\nRegistro salvo com sucesso!\n"
+                receipt_screen.ids.receipt_label.text = message
+                self.manager.current = 'receipt'
+
+            else:
+                print("Erro ao salvar registro:", response.json())
+
+        except Exception as e:
+            print("Erro na conexão com a API:", e)
 
 class ReceiptScreen(MDScreen):
     pass
@@ -195,7 +226,6 @@ ScreenManagerApp:
             elevation: 0.5
             pos_hint: {"top": 1}
                                    
-        # Imagem inicial (estática)
         MDCard:
             id: headimage
             size_hint: None, None
@@ -207,7 +237,6 @@ ScreenManagerApp:
                 pos_hint: {'center_x': 0.5}
                 source: './assets/test.jpg'
         
-        # Widget da câmera (inicialmente invisível)
         Image:
             id: camera_image
             size_hint: None, None
@@ -286,7 +315,7 @@ ScreenManagerApp:
             size_hint: (0.7, 0.1)
             elevation: 0.5
             md_bg_color: 0.298, 0.686, 0.314, 1
-            on_press: root.manager.current = 'receipt'
+            on_press: root.confirm_registration()
                                    
         MDRaisedButton:
             text: 'Não sou eu'
@@ -326,8 +355,11 @@ ScreenManagerApp:
                 spacing: "10dp"
                                    
                 MDLabel:
+                    id: receipt_label
                     text: 'Comprovante'
                     halign: 'center'
+                    theme_text_color: "Primary"
+                    font_style: "H6"
 
         MDRaisedButton:
             text: 'Fechar'
