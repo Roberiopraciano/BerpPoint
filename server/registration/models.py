@@ -46,3 +46,14 @@ class Training(models.Model):
 
         if model.objects.exclude(id=self.id).exists():
             raise ValidationError('Só pode haver um arquivo salvo.')
+        
+class EmployeeRegistration(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    datetime = models.DateTimeField()
+
+    class Meta:
+        verbose_name = 'Registro de Funcionário'
+        verbose_name_plural = 'Registro de Funcionários'
+
+    def __str__(self):
+        return f"{self.employee.name} - {self.datetime}"

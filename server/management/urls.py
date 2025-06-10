@@ -19,11 +19,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
-from registration.api.views import EmployeeViewSet, TrainingViewSet
+from registration.api.views import *
 
 router = DefaultRouter()
 router.register(r'employees', EmployeeViewSet)
 router.register(r'trainings', TrainingViewSet)
+router.register(r'employee-registration', EmployeeRegistrationViewSet)
 
 
 urlpatterns = [

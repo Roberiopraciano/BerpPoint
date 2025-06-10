@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Employee, FaceCollection, Training
+from .models import *
 
 class FaceColletionInline(admin.StackedInline):
     model = FaceCollection
@@ -11,3 +11,4 @@ class EmployeeAdmin(admin.ModelAdmin):
 
 admin.site.register(Employee, EmployeeAdmin)
 admin.site.register(Training)
+admin.site.register(EmployeeRegistration)
