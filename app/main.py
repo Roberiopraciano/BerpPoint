@@ -89,10 +89,81 @@ ScreenManagerApp:
             on_press: root.show_recognized_user()
                                    
 <UserScreen>:
-    name: user
+    name: "user"
+                                   
+    MDScreen:
+        md_bg_color: 0.941, 0.957, 0.973, 1
+                                   
+        MDTopAppBar:
+            title: "Usuário Identificado"
+            specific_text_color: 1, 1, 1, 1
+            anchor_title: "center"
+            md_bg_color: 0.173, 0.243, 0.314, 1
+            elevation: 0.5
+            pos_hint: {"top": 1}
+        
+        MDCard:
+            id: card
+            size_hint: None, None
+            size: "280dp", "300dp"
+            pos_hint: {"center_x": 0.5, "center_y": 0.6}
+            opacity: 0
+                                   
+            BoxLayout:
+                orientation: "vertical"
+                padding: "10dp"
+                spacing: "10dp"
+                                   
+                AsyncImage:
+                    id: photo
+                    size_hint: (1, 0.5)
+                    pos_hint: {"center_x": 0.5}
+                                   
+                MDLabel:
+                    id: name
+                    adaptive_size: True
+                    theme_text_color: "Secondary"
+                    size_hint_y: None
+                    pos_hint: {"center_x": .5, "center_y": .5}
+                    padding: "4dp", "4dp"
+                                    
+                MDLabel:
+                    id: cpf
+                    adaptive_size: True
+                    theme_text_color: "Secondary"
+                    size_hint_y: None
+                    pos_hint: {"center_x": .5, "center_y": .5}
+                    padding: "4dp", "4dp"
+                                    
+                MDLabel:
+                    id: datetime
+                    adaptive_size: True
+                    theme_text_color: "Secondary"
+                    size_hint_y: None
+                    pos_hint: {"center_x": .5, "center_y": .5}
+                    padding: "4dp", "4dp"
+                                   
+        MDRaisedButton:
+            text: 'Confirmar'
+            font_size: '20sp'
+            pos_hint: {'center_x': 0.5, 'center_y': 0.25}
+            size_hint: (0.7, 0.1)
+            elevation: 0.5
+            md_bg_color: 0.298, 0.686, 0.314, 1
+            on_press: root.manager.current = 'receipt'
+                                   
+        MDRaisedButton:
+            text: 'Não sou eu'
+            font_size: '20sp'
+            pos_hint: {'center_x': 0.5, 'center_y': 0.1}
+            size_hint: (0.7, 0.1)
+            levation: 0.5
+            md_bg_color: 0.9, 0.3, 0.3, 1
+            on_press: root.manager.current = 'main'
+
                                    
 <ReceiptScreen>:
-    name: receipt
+    name: "receipt"
 """)
 
 if __name__ == '__main__':
