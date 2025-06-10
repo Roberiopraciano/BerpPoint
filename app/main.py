@@ -164,6 +164,42 @@ ScreenManagerApp:
                                    
 <ReceiptScreen>:
     name: "receipt"
+    MDScreen:
+        md_bg_color: 0.941, 0.957, 0.973, 1
+                                   
+        MDTopAppBar:
+            title: "Comprovante"
+            specific_text_color: 1, 1, 1, 1
+            anchor_title: "center"
+            md_bg_color: 0.173, 0.243, 0.314, 1
+            elevation: 0.5
+            pos_hint: {"top": 1}
+                                   
+        MDCard:
+            id: card_comprovante
+            size_hint: None, None
+            size: "280dp", "300dp"
+            md_bg_color: 1.0, 0.976, 0.912, 1
+            pos_hint: {"center_x": 0.5, "center_y": 0.6}
+            opacity: 1
+                                   
+            BoxLayout:
+                orientation: "vertical"
+                padding: "10dp"
+                spacing: "10dp"
+                                   
+                MDLabel:
+                    text: 'Comprovante'
+                    halign: 'center'
+
+        MDRaisedButton:
+            text: 'Fechar'
+            font_size: '20sp'
+            pos_hint: {'center_x':0.5, 'center_y':0.2}
+            md_bg_color: 1, 0.388, 0.278, 1
+            size_hint: (0.7, 0.1)
+            elevation: 0.5
+            on_press: root.manager.current = 'main'
 """)
 
 if __name__ == '__main__':
