@@ -1,4 +1,8 @@
+import os
 import cv2
+import tempfile
+import requests
+
 from datetime import datetime
 
 from kivymd.app import MDApp
@@ -19,7 +23,34 @@ Window.size = (360, 600)
 class MainScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        # Remover o layout programático - usar apenas o KV
+
+        self.recognized_user = None
+        self.recognized = False
+        self.recognition_enabled = False
+
+        tmp_dir = "./tmp"
+        os.makedirs(tmp_dir, exist_ok=True)
+
+        self.face_cascade = cv2.CascadeClassifier("./lib/haarcascade_frontalface_default.xml")
+        self.recognizer = cv2.face.EigenFaceRecognizer_create()
+
+        training = requests.get("http://127.0.0.1:8000/api/trainings/").json()
+
+        model_url = training[0]['model']
+        tmp_path = os.path.join(tmp_dir, "model.xml")
+
+        with open(tmp_path, "wb") as temp_file:
+            temp_file.write(requests.get(model_url).content)
+            self.recognizer.read(temp_file.name) 
+
+
+    def reset_camera(self):
+        self.ids.headimage.opacity = 1
+
+        if self.cap:
+            self.cap.release()
+        self.ids.camera_image.texture = None
+
 
     def load_video(self, *args):
         ret, frame = self.cap.read()
@@ -27,8 +58,6 @@ class MainScreen(MDScreen):
         if not ret:
             print("Falha ao capturar o frame")
             return
-        
-        print("Frame capturado com sucesso")
         
         height, width, _ = frame.shape
         center_x, center_y = int(width / 2), int(height / 2)
@@ -42,15 +71,40 @@ class MainScreen(MDScreen):
         texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt="bgr")
         texture.blit_buffer(buffer, colorfmt="bgr", bufferfmt="ubyte")
         
-        # Verificar se o widget existe antes de atribuir a textura
         try:
             if hasattr(self.ids, 'camera_image'):
                 self.ids.camera_image.texture = texture
-                print("Textura aplicada ao camera_image")
+
+                if not self.recognition_enabled:
+                    return
+
+                roi = frame[y1:y2, x1:x2]
+                gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+                detected_faces = self.face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+                for (x, y, w, h) in detected_faces:
+                    FaceImage = cv2.resize(gray[y:y+h, x:x+w], (220, 220))
+                    label, confianca = self.recognizer.predict(FaceImage)
+                    print(f"ID reconhecido: {label}")
+
+                    if label:                    
+                        response = requests.get(f"http://127.0.0.1:8000/api/employees/{label}/")
+                        if response.status_code == 200:
+                            employee = response.json()
+
+                            self.recognized_user = employee['id']
+                            self.recognized = True
+
+                        self.show_recognized_user(employee)
+                        Clock.unschedule(self.load_video)
+                        self.reset_camera()
+
+                    break
             else:
                 print("Widget camera_image não encontrado!")
         except Exception as e:
             print(f"Erro ao aplicar textura: {e}")
+
 
     def open_camera_for_recognition(self):
         if hasattr(self, "cap") and self.cap.isOpened():
@@ -58,7 +112,6 @@ class MainScreen(MDScreen):
         
         print("Iniciando câmera...")
         
-        # Esconder a imagem estática e mostrar a câmera
         try:
             self.ids.headimage.opacity = 0
             self.ids.camera_image.opacity = 1
@@ -75,28 +128,28 @@ class MainScreen(MDScreen):
         if self.cap.isOpened():
             print("Câmera aberta com sucesso")
             Clock.schedule_interval(self.load_video, 1.0 / 60.0)
+            Clock.schedule_once(self.start_recognition, 3)
         else:
             print("Falha ao abrir a câmera")
 
+
     def stop_camera(self):
-        """Para a câmera e volta para a imagem inicial"""
         if hasattr(self, "cap") and self.cap.isOpened():
             Clock.unschedule(self.load_video)
             self.cap.release()
             print("Câmera fechada")
         
-        # Voltar para a imagem inicial
         self.ids.headimage.opacity = 1
         self.ids.camera_image.opacity = 0
         
-    def show_recognized_user(self):
+
+    def start_recognition(self, *args):
+        self.recognition_enabled = True 
+
+
+    def show_recognized_user(self, employee):
+        print(employee)
         self.manager.current = 'user'
-        
-        employee = {
-            "photo": "./assets/test.jpg",
-            "name": "Francisco Hermeson",
-            "cpf": "123.456.789-10",
-        }
 
         user_screen = self.manager.get_screen('user')
         user_screen.ids.photo.source = employee["photo"]
@@ -242,8 +295,9 @@ ScreenManagerApp:
             size_hint: (0.7, 0.1)
             elevation: 0.5
             md_bg_color: 0.9, 0.3, 0.3, 1
-            on_press: root.manager.current = 'main'
-
+            on_press:
+                root.manager.current = 'main'
+                root.manager.get_screen('main').reset_camera()
                                    
 <ReceiptScreen>:
     name: "receipt"
@@ -282,7 +336,9 @@ ScreenManagerApp:
             md_bg_color: 1, 0.388, 0.278, 1
             size_hint: (0.7, 0.1)
             elevation: 0.5
-            on_press: root.manager.current = 'main'
+            on_press:
+                root.manager.current = 'main'
+                root.manager.get_screen('main').reset_camera()
 """)
 
 if __name__ == '__main__':
